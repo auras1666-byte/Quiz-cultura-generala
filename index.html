@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Cultura Generala</title>
+    <style>
+        /* CSS - Design-ul site-ului */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0f172a;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #quiz-card {
+            background-color: #1e293b;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        h1 { color: #38bdf8; font-size: 1.5rem; margin-bottom: 20px; }
+       
+        #question-text { font-size: 1.2rem; margin-bottom: 20px; min-height: 60px; }
+
+        .options-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background-color: #334155;
+            color: white;
+            border: 2px solid transparent;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover { background-color: #475569; border-color: #38bdf8; }
+
+        /* Culori pentru feedback */
+        .correct { background-color: #22c55e !important; border-color: #166534; }
+        .wrong { background-color: #ef4444 !important; border-color: #991b1b; }
+
+        #score-area { margin-top: 20px; font-weight: bold; color: #94a3b8; }
+    </style>
+</head>
+<body>
+
+<div id="quiz-card">
+    <h1>Cultură Generală 💡</h1>
+    <div id="question-text">Se încarcă întrebarea...</div>
+   
+    <div class="options-grid" id="options-container">
+        </div>
+
+    <div id="score-area">Scor: <span id="current-score">0</span></div>
+</div>
+
+<script>
+    // JavaScript - Logica jocului
+    const intrebari = [
+        { q: "Care este capitala României?", a: ["Cluj", "București", "Iași", "Timișoara"], c: 1 },
+        { q: "Ce planetă este cea mai apropiată de Soare?", a: ["Venus", "Marte", "Mercur", "Pământ"], c: 2 },
+        { q: "Câte picioare are un păianjen?", a: ["6", "8", "10", "4"], c: 1 },
+        { q: "În ce an a început Al Doilea Război Mondial?", a: ["1914", "1939", "1945", "1918"], c: 1 }
+    ];
+
+    let indexCurent = 0;
+    let scor = 0;
+
+    const questionEl = document.getElementById("question-text");
+    const optionsContainer = document.getElementById("options-container");
+    const scoreEl = document.getElementById("current-score");
+
+    function afiseazaIntrebare() {
+        const item = intrebari[indexCurent];
+        questionEl.innerText = item.q;
+        optionsContainer.innerHTML = ""; // Ștergem butoanele vechi
+
+        item.a.forEach((raspuns, i) => {
+            const buton = document.createElement("button");
+            buton.innerText = raspuns;
+            buton.classList.add("option-btn");
+            buton.onclick = () => verificaRaspuns(i, buton);
+            optionsContainer.appendChild(buton);
+        });
+    }
+
+    function verificaRaspuns(indexApasat, buton) {
+        const corect = intrebari[indexCurent].c;
+       
+        // Dezactivăm toate butoanele după ce s-a apăsat unul
+        const toateButoanele = document.querySelectorAll(".option-btn");
+        toateButoanele.forEach(b => b.disabled = true);
+
+        if (indexApasat === corect) {
+            buton.classList.add("correct");
+            scor++;
+            scoreEl.innerText = scor;
+        } else {
+            buton.classList.add("wrong");
+            toateButoanele[corect].classList.add("correct"); // Arătăm care era cel corect
+        }
+
+        // Așteptăm 1.5 secunde și trecem la următoarea
+        setTimeout(() => {
+            indexCurent++;
+            if (indexCurent < intrebari.length) {
+                afiseazaIntrebare();
+            } else {
+                alert("Felicitări! Ai terminat testul cu scorul: " + scor);
+                location.reload(); // Restart joc
+            }
+        }, 1500);
+    }
+
+    afiseazaIntrebare(); // Pornim prima întrebare
+</script>
+
+</body>
+</html>
