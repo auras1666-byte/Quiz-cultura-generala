@@ -7,8 +7,8 @@
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
         #quiz-card { background-color: #1e293b; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 90%; max-width: 450px; text-align: center; }
-        h1 { color: #38bdf8; font-size: 1.5rem; margin-bottom: 20px; }
-        #timer-container { width: 100%; background: #334155; height: 10px; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+        h1 { color: #38bdf8; font-size: 1.8rem; margin-bottom: 20px; }
+        #timer-container { width: 100%; background: #334155; height: 10px; border-radius: 5px; margin-bottom: 20px; overflow: hidden; display: none; }
         #timer-bar { width: 100%; background: #fbbf24; height: 100%; transition: width 0.1s linear; }
         #question-text { font-size: 1.1rem; margin-bottom: 20px; min-height: 70px; display: flex; align-items: center; justify-content: center; }
         .options-grid { display: grid; gap: 10px; }
@@ -16,32 +16,82 @@
         .option-btn:hover:not([disabled]) { background-color: #475569; border-color: #38bdf8; }
         .correct { background-color: #22c55e !important; }
         .wrong { background-color: #ef4444 !important; }
-        #score-area { margin-top: 20px; font-weight: bold; color: #94a3b8; font-size: 0.9rem; }
+        #score-area { margin-top: 20px; font-weight: bold; color: #94a3b8; font-size: 0.9rem; display: none; }
+        .start-btn { background-color: #38bdf8; color: #0f172a; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .start-btn:hover { transform: scale(1.05); background-color: #7dd3fc; }
     </style>
 </head>
 <body>
 
 <div id="quiz-card">
-    <h1>Geniu Quiz 💡</h1>
-    <div id="timer-container"><div id="timer-bar"></div></div>
-    <div id="question-text">Se încarcă întrebările...</div>
-    <div class="options-grid" id="options-container"></div>
-    <div id="score-area">Întrebarea: <span id="q-count">1</span>/10 | Scor: <span id="current-score">0</span></div>
+    <h1 id="main-title">Geniu Quiz 💡</h1>
+    
+    <div id="start-screen">
+        <p>Ești gata să îți testezi mintea?</p>
+        <button class="start-btn" onclick="incepeJocul()">START JOC</button>
+    </div>
+
+    <div id="game-screen" style="display: none;">
+        <div id="timer-container"><div id="timer-bar"></div></div>
+        <div id="question-text">Se încarcă...</div>
+        <div class="options-grid" id="options-container"></div>
+        <div id="score-area">Întrebarea: <span id="q-count">1</span>/15 | Scor: <span id="current-score">0</span></div>
+    </div>
 </div>
 
 <script>
-    // LISTA DE INTREBARI
     const toateIntrebarile = [
-        { q: "Care este cel mai lung fluviu din Europa?", a: ["Dunărea", "Volga", "Rin", "Nil"], c: 1 },
-        { q: "Câte inimi are o caracatiță?", a: ["1", "2", "3", "4"], c: 2 },
-        { q: "În ce an a căzut zidul Berlinului?", a: ["1989", "1991", "1987", "1990"], c: 0 },
-        { q: "Care este cel mai dens element chimic?", a: ["Aurul", "Plumbul", "Osmiul", "Uranul"], c: 2 },
-        { q: "Cine a scris 'Luceafărul'?", a: ["Ion Creangă", "Mihai Eminescu", "George Bacovia", "Lucian Blaga"], c: 1 },
-        { q: "Câte continente există?", a: ["5", "6", "7", "8"], c: 2 },
-        { q: "Care este capitala Japoniei?", a: ["Seul", "Beijing", "Tokyo", "Bangkok"], c: 2 },
-        { q: "Ce animal este simbolul Australiei?", a: ["Ursul Koala", "Cangurul", "Emu", "Ornitorincul"], c: 1 },
-        { q: "Care este cel mai mare organ al corpului uman?", a: ["Ficatul", "Creierul", "Pielea", "Plămânii"], c: 2 },
-        { q: "În ce oraș se află Turnul Eiffel?", a: ["Londra", "Berlin", "Paris", "Madrid"], c: 2 }
+        // ... (Include cele 40 anterioare aici sau le adaugam direct in lista extinsa)
+        { q: "Care este capitala Italiei?", a: ["Milano", "Venetia", "Roma", "Napoli"], c: 2 },
+        { q: "Câte zile are un an bisect?", a: ["364", "365", "366", "367"], c: 2 },
+        { q: "Ce personaj Disney are nasul care crește?", a: ["Mickey", "Pinocchio", "Aladdin", "Simba"], c: 1 },
+        { q: "Care este cea mai vorbită limbă din lume?", a: ["Engleza", "Chineza", "Spaniola", "Hindi"], c: 0 },
+        { q: "Câte corzi are o vioară standard?", a: ["3", "4", "5", "6"], c: 1 },
+        { q: "Cine a scris 'Harry Potter'?", a: ["J.K. Rowling", "Stephen King", "Tolkien", "George R.R. Martin"], c: 0 },
+        { q: "Care este cel mai apropiat star de Pământ?", a: ["Sirius", "Soarele", "Alpha Centauri", "Polaris"], c: 1 },
+        { q: "Din ce țară provine pizza?", a: ["Spania", "Grecia", "Italia", "Turcia"], c: 2 },
+        { q: "Câți jucători are o echipă de fotbal pe teren?", a: ["10", "11", "12", "9"], c: 1 },
+        { q: "Ce culoare are smaraldul?", a: ["Roșu", "Albastru", "Verde", "Galben"], c: 2 },
+        { q: "Care este cel mai înalt mamifer?", a: ["Elefantul", "Girafa", "Balena", "Calul"], c: 1 },
+        { q: "Câți ani are un secol?", a: ["50", "100", "500", "1000"], c: 1 },
+        { q: "Ce limbă se vorbește în Argentina?", a: ["Portugheză", "Engleză", "Spaniolă", "Italiană"], c: 2 },
+        { q: "Câte laturi are un triunghi?", a: ["2", "3", "4", "5"], c: 1 },
+        { q: "În ce an a fost lansat primul iPhone?", a: ["2005", "2007", "2010", "2008"], c: 1 },
+        { q: "Care este capitala Germaniei?", a: ["Munich", "Frankfurt", "Berlin", "Hamburg"], c: 2 },
+        { q: "Ce pasăre nu poate să zboare?", a: ["Vulturul", "Pinguinul", "Porumbelul", "Bufnița"], c: 1 },
+        { q: "Câte luni au 28 de zile?", a: ["1", "6", "Toate", "0"], c: 2 },
+        { q: "Cine a pictat 'Screamatul'?", a: ["Picasso", "Edvard Munch", "Monet", "Dali"], c: 1 },
+        { q: "Care este cel mai mare stat din SUA?", a: ["Texas", "California", "Alaska", "Florida"], c: 2 },
+        { q: "Ce metal este lichid la temperatura camerei?", a: ["Fierul", "Mercurul", "Argintul", "Cuprul"], c: 1 },
+        { q: "Câte continente încep cu litera A?", a: ["3", "4", "5", "2"], c: 1 },
+        { q: "Care este capitala Spaniei?", a: ["Barcelona", "Sevilla", "Madrid", "Valencia"], c: 2 },
+        { q: "Cine a fost 'Regele Rock and Roll-ului'?", a: ["Elvis Presley", "Michael Jackson", "Freddie Mercury", "Prince"], c: 0 },
+        { q: "Câte inele sunt pe steagul Olimpic?", a: ["4", "5", "6", "3"], c: 1 },
+        { q: "Care este cel mai mare lac din lume?", a: ["Lacul Superior", "Marea Caspică", "Lacul Baikal", "Marea Moartă"], c: 1 },
+        { q: "Din ce țară este firma LEGO?", a: ["Suedia", "Germania", "Danemarca", "Norvegia"], c: 2 },
+        { q: "Ce animal trăiește cel mai mult?", a: ["Țestoasa", "Elefantul", "Balena", "Crocodilul"], c: 0 },
+        { q: "Câte picioare are o furnică?", a: ["4", "6", "8", "10"], c: 1 },
+        { q: "Care este cel mai dur material natural?", a: ["Fierul", "Oțelul", "Diamantul", "Granitul"], c: 2 },
+        { q: "Cine a inventat telefonul?", a: ["Edison", "Bell", "Tesla", "Newton"], c: 1 },
+        { q: "În ce ocean se află Triunghiul Bermudelor?", a: ["Pacific", "Atlantic", "Indian", "Arctic"], c: 1 },
+        { q: "Ce organ pompează sângele?", a: ["Creierul", "Plămânii", "Inima", "Ficatul"], c: 2 },
+        { q: "Care este cea mai mare țară din lume?", a: ["China", "SUA", "Rusia", "Canada"], c: 2 },
+        { q: "Din ce oraș provine trupa The Beatles?", a: ["Londra", "Liverpool", "Manchester", "Bristol"], c: 1 },
+        { q: "Câte minute are o zi?", a: ["1200", "1440", "1500", "2400"], c: 1 },
+        { q: "Care este capitala Franței?", a: ["Lyon", "Paris", "Marseille", "Nice"], c: 1 },
+        { q: "Ce zeu era stăpânul fulgerelor în mitologia greacă?", a: ["Hades", "Poseidon", "Zeus", "Ares"], c: 2 },
+        { q: "Câte culori are steagul României?", a: ["2", "3", "4", "1"], c: 1 },
+        { q: "În ce an s-a terminat Al Doilea Război Mondial?", a: ["1940", "1945", "1950", "1918"], c: 1 },
+        { q: "Care este simbolul chimic pentru apă?", a: ["CO2", "O2", "H2O", "HO2"], c: 2 },
+        { q: "Ce instrument cânta Mozart?", a: ["Chitară", "Pian", "Flaut", "Tobe"], c: 1 },
+        { q: "Câți dinți are un adult sănătos?", a: ["28", "30", "32", "34"], c: 2 },
+        { q: "Care este cel mai rece loc din lume?", a: ["Siberia", "Groenlanda", "Antarctica", "Canada"], c: 2 },
+        { q: "Ce țară a inventat ceaiul?", a: ["India", "Japonia", "China", "Anglia"], c: 2 },
+        { q: "Câte secunde sunt într-un minut?", a: ["30", "60", "90", "120"], c: 1 },
+        { q: "Cine a fost primul președinte al SUA?", a: ["Lincoln", "Washington", "Jefferson", "Franklin"], c: 1 },
+        { q: "Ce culoare are cutia neagră a unui avion?", a: ["Neagră", "Portocalie", "Albă", "Roșie"], c: 1 },
+        { q: "Care este moneda în Japonia?", a: ["Dolar", "Euro", "Yen", "Yuan"], c: 2 },
+        { q: "Câte planete au inele în sistemul nostru solar?", a: ["1", "2", "3", "4"], c: 3 }
     ];
 
     let intrebariSelectate = [];
@@ -49,13 +99,16 @@
     let scor = 0;
     let timerInterval;
 
-    // Așteptăm ca HTML-ul să fie gata înainte de a rula logica
-    window.onload = function() {
+    function incepeJocul() {
+        document.getElementById("start-screen").style.display = "none";
+        document.getElementById("game-screen").style.display = "block";
+        document.getElementById("timer-container").style.display = "block";
+        document.getElementById("score-area").style.display = "block";
         initJoc();
-    };
+    }
 
     function initJoc() {
-        intrebariSelectate = [...toateIntrebarile].sort(() => Math.random() - 0.5).slice(0, 10);
+        intrebariSelectate = [...toateIntrebarile].sort(() => Math.random() - 0.5).slice(0, 15);
         indexCurent = 0;
         scor = 0;
         document.getElementById("current-score").innerText = scor;
@@ -63,68 +116,8 @@
     }
 
     function afiseazaIntrebare() {
-        if (indexCurent >= intrebariSelectate.length) return;
-
         const item = intrebariSelectate[indexCurent];
         document.getElementById("q-count").innerText = indexCurent + 1;
         document.getElementById("question-text").innerText = item.q;
-        
         const container = document.getElementById("options-container");
         container.innerHTML = "";
-
-        item.a.forEach((raspuns, i) => {
-            const buton = document.createElement("button");
-            buton.innerText = raspuns;
-            buton.classList.add("option-btn");
-            buton.onclick = () => verificaRaspuns(i, buton);
-            container.appendChild(buton);
-        });
-        pornesteCronometru();
-    }
-
-    function pornesteCronometru() {
-        let timpRamas = 100;
-        const bar = document.getElementById("timer-bar");
-        bar.style.width = "100%";
-        bar.style.backgroundColor = "#fbbf24";
-
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            timpRamas -= 1;
-            bar.style.width = timpRamas + "%";
-            if (timpRamas <= 30) bar.style.backgroundColor = "#ef4444";
-            if (timpRamas <= 0) {
-                clearInterval(timerInterval);
-                verificaRaspuns(-1, null);
-            }
-        }, 100);
-    }
-
-    function verificaRaspuns(indexApasat, buton) {
-        clearInterval(timerInterval);
-        const corect = intrebariSelectate[indexCurent].c;
-        const butoane = document.querySelectorAll(".option-btn");
-        butoane.forEach(b => b.disabled = true);
-
-        if (indexApasat === corect) {
-            if(buton) buton.classList.add("correct");
-            scor++;
-            document.getElementById("current-score").innerText = scor;
-        } else {
-            if (buton) buton.classList.add("wrong");
-            butoane[corect].classList.add("correct");
-        }
-
-        setTimeout(() => {
-            indexCurent++;
-            if (indexCurent < intrebariSelectate.length) {
-                afiseazaIntrebare();
-            } else {
-                alert("Joc terminat! Scor: " + scor + "/10");
-                initJoc();
-            }
-        }, 1500);
-    }
-</script>
-</body>
-</html>
